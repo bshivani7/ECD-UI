@@ -78,7 +78,7 @@
                             </mat-radio-group>
 
                         </div>
-                        <div style="padding: 8px;" class="col-xs-12 col-sm-6 col-md-4 col-lg-4 box m-bottom">
+                        <div style="padding: 8px; margin-left: 16px;" class="col-xs-12 col-sm-6 col-md-4 col-lg-4 box m-bottom">
                             <label class="radio-button-styling" id="isCallDisconnected">{{currentLanguageSet?.callDisconnected}}
                             </label>
                             <mat-radio-group required id="isCallDisconnected" formControlName="isCallDisconnected"
@@ -87,7 +87,7 @@
                                 <mat-radio-button class="m-10" value="No">{{currentLanguageSet?.no}}</mat-radio-button>
                             </mat-radio-group>
                         </div>
-                        <div [hidden]="showVerifiedFields == false" style="padding: 8px; margin-left: -137px;" class="col-xs-12 col-sm-6 col-md-4 col-lg-4 box m-bottom">
+                        <div [hidden]="showVerifiedFields == false" style="padding: 8px; margin-left: -120px;" class="col-xs-12 col-sm-6 col-md-4 col-lg-4 box m-bottom">
                             <label class="radio-button-styling" id="isWrongNumber">{{currentLanguageSet?.isWrongNumber}}
                             </label>
                             <mat-radio-group [required]="showVerifiedFields" id="isWrongNumber" formControlName="isWrongNumber"
