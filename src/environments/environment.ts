@@ -25,16 +25,16 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 const ecdIP = 'http://10.208.122.22:8080/';
-const commonIP = 'http://10.208.122.100:8080/';
-const adminIP = 'http://10.208.122.100:8080/';
-const IOT_API = 'http://localhost:8085/ezdx-hub-connect-srv';
+const commonIP = 'http://10.208.122.38:8080/';
+const adminIP = 'http://10.208.122.38:8080/';
 const COMMON_API = `${commonIP}commonapi-v1.1/`;
 const ADMIN_API = `${adminIP}adminapi-v1.1/`;
 const ECD_API = `${ecdIP}ecdapi/`;
+const biologicalScreeningDeviceAPI = `${ADMIN_API}diagnostics/biologicalScreeningDevice`; 
 
 export const environment = {
   production: false,
-  ioturl: `${IOT_API}`,
+  ioturl: `${biologicalScreeningDeviceAPI}`,
   extendSessionUrl: `${ECD_API}common/extend/redisSession`,
   language: 'English',
   licenseUrl: `${COMMON_API}license.html`,
