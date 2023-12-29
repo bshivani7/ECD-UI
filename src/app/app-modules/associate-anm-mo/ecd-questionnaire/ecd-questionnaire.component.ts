@@ -504,14 +504,20 @@ export class EcdQuestionnaireComponent implements OnInit {
         questionnaires: section.questionnaires.sort((a: { sectionQuestionRank: number; }, b: { sectionQuestionRank: number; }) => a.sectionQuestionRank - b.sectionQuestionRank)
     }));
     console.log("filtered data", this.filteredQuesData);
+     if(this.benData.outboundCallType.toLowerCase() === "introductory"){
+         this.filterHrpHrniQuesForIntroductoryCall();
+       }
   }
 
     isQuestionEnabled(question: any) {
-        if (question.parentQuestionId !== null && question.parentQuestionId != undefined && 
-            question.parentAnswer !== null && question.parentAnswer != undefined) {
-            return false;
+      let arr : any= [];
+        if (question.parentQuestionId !== undefined && question.parentQuestionId != null && question.parentQuestionId.length > 0
+            && question.parentAnswer !== undefined && question.parentAnswer !== null && question.parentAnswer.length > 0 ) {
+            return arr;
+        } else {
+          arr.push("Parent Ques")
+        return arr;
         }
-        return true;
     }
 
     processFilteredQuestionnaires(selectedAnsweredQues: any) {
@@ -520,27 +526,77 @@ export class EcdQuestionnaireComponent implements OnInit {
         section.questionnaires.forEach((questionnaire: any) => {
           if (selectedAnsweredQues.answerType != null && selectedAnsweredQues.answerType != undefined &&
             (selectedAnsweredQues.answerType.toLowerCase() === "radio" || selectedAnsweredQues.answerType.toLowerCase() === "dropdown")) {
-            if(questionnaire.parentQuestionId === selectedAnsweredQues.questionid &&
-              selectedAnsweredQues.answer != null && questionnaire.parentAnswer === selectedAnsweredQues.answer) {
-              questionnaire.enabledQues = true;
-            } else if((questionnaire.parentQuestionId === selectedAnsweredQues.questionid) &&
-                        (selectedAnsweredQues.answer == null || questionnaire.parentAnswer !== selectedAnsweredQues.answer)) {
-              questionnaire.enabledQues = false;
-              questionnaire.answer = null;
-              this.processFilteredQuestionnaires(questionnaire);
+            if(questionnaire.parentQuestionId != null && questionnaire.parentQuestionId.includes(selectedAnsweredQues.questionid) &&
+              selectedAnsweredQues.answer != null){ //&& questionnaire.parentAnswer.includes(selectedAnsweredQues.answer)) {
+                questionnaire.parentAnswer.forEach((answer: any) => {
+                  if(answer.parentQuesId == selectedAnsweredQues.questionid){
+                    if(answer.parentAnswerList.includes(selectedAnsweredQues.answer)){
+                      if(!questionnaire.enabledQues.includes(answer.parentQuesId) ){
+                    questionnaire.enabledQues.push(answer.parentQuesId);
+                      }
+                    } else {
+                      const indexToRemove = questionnaire.enabledQues.indexOf(answer.parentQuesId);
+                      if (indexToRemove !== -1) { 
+                        questionnaire.enabledQues.splice(indexToRemove, 1);
+                        if(questionnaire.enabledQues.length <= 0){
+                          questionnaire.answer = null;
+                        }
+                        this.processFilteredQuestionnaires(questionnaire);
+                      }                    
+                    }
+                }
+                })
+              
+            } else if(questionnaire.parentQuestionId !== null && questionnaire.parentQuestionId.includes(selectedAnsweredQues.questionid) &&
+                        selectedAnsweredQues.answer == null){ // || !questionnaire.parentAnswer.includes(selectedAnsweredQues.answer) )) {
+                          questionnaire.parentAnswer.forEach((answer: any) => {
+                        const indexToRemove = questionnaire.enabledQues.indexOf(answer.parentQuesId);
+                          if (indexToRemove !== -1) { 
+                            questionnaire.enabledQues.splice(indexToRemove, 1);
+                            if(questionnaire.enabledQues.length <= 0){
+                              questionnaire.answer = null;
+                          this.processFilteredQuestionnaires(questionnaire);
+              }
+            }
+          });
             }
           } else if (selectedAnsweredQues.answerType != null && selectedAnsweredQues.answerType != undefined &&
             selectedAnsweredQues.answerType.toLowerCase() === "multiple") {
-              if(questionnaire.parentQuestionId === selectedAnsweredQues.questionid &&
-                selectedAnsweredQues.answer != null && selectedAnsweredQues.answer.includes(questionnaire.parentAnswer)) {
-                questionnaire.enabledQues = true;
-              } else if((questionnaire.parentQuestionId === selectedAnsweredQues.questionid) && 
-                        (selectedAnsweredQues.answer == null || !selectedAnsweredQues.answer.includes(questionnaire.parentAnswer))) {
-                          questionnaire.enabledQues = false;
-                          questionnaire.answer = null;
+              if(questionnaire.parentQuestionId != null && questionnaire.parentQuestionId.includes(selectedAnsweredQues.questionid) &&
+                selectedAnsweredQues.answer != null){ // && selectedAnsweredQues.answer.includes(questionnaire.parentAnswer)) {
+                  questionnaire.parentAnswer.forEach((answer: any) => {
+                    if(answer.parentQuesId == selectedAnsweredQues.questionid) 
+                    if (answer.parentAnswerList.some((item: any) => selectedAnsweredQues.answer.includes(item))) {
+                      console.log("Condition passed: at least one item in answer.parentAnswerList matches selectedAnsweredQues.answer");                
+                      if(!questionnaire.enabledQues.includes(answer.parentQuesId) ){
+                        questionnaire.enabledQues.push(answer.parentQuesId);
+                          }
+                        } else {
+                          const indexToRemove = questionnaire.enabledQues.indexOf(answer.parentQuesId);
+                          if (indexToRemove !== -1) { 
+                            questionnaire.enabledQues.splice(indexToRemove, 1);
+                            if(questionnaire.enabledQues.length <= 0){
+                              questionnaire.answer = null;
+                            }
+                            this.processFilteredQuestionnaires(questionnaire);
+                          }                    
+                        }
+                  });
+              } 
+            else if(questionnaire.parentQuestionId !== null && questionnaire.parentQuestionId.includes(selectedAnsweredQues.questionid) && 
+                        (selectedAnsweredQues.answer == null)){ //|| !selectedAnsweredQues.answer.includes(questionnaire.parentAnswer))) {
+                          questionnaire.parentAnswer.forEach((answer: any) => {
+                          const indexToRemove = questionnaire.enabledQues.indexOf(answer.parentQuesId);
+                          if (indexToRemove !== -1) { 
+                            questionnaire.enabledQues.splice(indexToRemove, 1);
+                            if(questionnaire.enabledQues.length <= 0){
+                              questionnaire.answer = null;
                           this.processFilteredQuestionnaires(questionnaire);
               }
           }
+        });
+        }
+      }
         });
       });
     }
@@ -553,18 +609,18 @@ export class EcdQuestionnaireComponent implements OnInit {
     }
 
     // filter ques and splice object in the array
-    // filterHrpHrniQuesForIntroductoryCall(){
-    //   this.filteredQuesData.forEach((section: any, j: number) => {
-    //     section.questionnaires.forEach((question: any, i: number) => {
-    //       if(this.enableChildForm && (question.question.toLowerCase().includes('is hrp')  || question.question.toLowerCase().includes('high risk pregnancy'))){
-    //         this.filteredQuesData[j].questionnaires.splice(i, 1);
-    //       } else if(!this.enableChildForm && (question.question.toLowerCase().includes('is hrni') || question.question.toLowerCase().includes('high risk newborn') 
-    //       || question.question.toLowerCase().includes('high risk infant'))){
-    //         this.filteredQuesData[j].questionnaires.splice(i, 1);
-    //       }
-    //     });
-    //   });
-    // }
+    filterHrpHrniQuesForIntroductoryCall(){
+      this.filteredQuesData.forEach((section: any, j: number) => {
+        section.questionnaires.forEach((question: any, i: number) => {
+          if(this.enableChildForm && (question.question.toLowerCase().includes('is hrp')  || question.question.toLowerCase().includes('high risk pregnancy'))){
+            this.filteredQuesData[j].questionnaires.splice(i, 1);
+          } else if(!this.enableChildForm && (question.question.toLowerCase().includes('is hrni') || question.question.toLowerCase().includes('high risk newborn') 
+          || question.question.toLowerCase().includes('high risk infant'))){
+            this.filteredQuesData[j].questionnaires.splice(i, 1);
+          }
+        });
+      });
+    }
 
   isStepValid(stepIndex: number): boolean {
       const step = this.filteredQuesData[stepIndex];
@@ -702,36 +758,43 @@ export class EcdQuestionnaireComponent implements OnInit {
       if(element.questionnaires){
       element.questionnaires.forEach((item: any) => {
         if(item.questionType.toLowerCase() === "question"){
-        //   if(item.question.toLowerCase().includes('is hrp')  || item.question.toLowerCase().includes('high risk pregnancy')) { 
-        //     arr = {
-        //       sectionId: item.sectionid,
-        //       questionId: item.questionid,
-        //       question: item.question,
-        //       answer: (item.answer !== null && item.answer !== "") ? item.answer : null,
-        //       reasonsForHrp: this.hrpReasons,
-        //       otherHrpReason: (this.otherHrPReason !== null && this.otherHrPReason !== "") ? this.otherHrPReason : null
-        //     }
-        //     if(this.hrpReasons && this.hrpReasons.length > 0){
-        //     this.associateAnmMoService.isHighRiskPregnancy = true;
-        //     }
-        //   }
-        //   else if(item.question.toLowerCase().includes('is hrni') || item.question.toLowerCase().includes('high risk newborn') 
-        //   || item.question.toLowerCase().includes('high risk infant')){
-        //   arr = {
-        //     sectionId: item.sectionid,
-        //     questionId: item.questionid,
-        //     question: item.question,
-        //     answer: (item.answer !== null && item.answer !== "") ? item.answer : null,
-        //     reasonsForHrni: this.hrniReasons,
-        //     otherHrni: (this.otherHrniReason !== null && this.otherHrniReason !== "") ? this.otherHrniReason : null,
-        //     congentialAnomalies: this.congentialAnomaliesReasons,
-        //     otherCongentialAnomalies: (this.otherCongentialAnomalie !== null && this.otherCongentialAnomalie !== "") ? this.otherCongentialAnomalie : null,
-        //     probableCauseOfDefect: (this.probableDefectCause !== null && this.probableDefectCause !== "") ? this.probableDefectCause : null
-        //   }
-        //   if(this.hrniReasons && this.hrniReasons.length > 0){
-        //   this.associateAnmMoService.isHighRiskInfant = true;
-        //   }
-        // } else {
+          if(item.question.toLowerCase().includes('is hrp')  || item.question.toLowerCase().includes('high risk pregnancy')) { 
+            // arr = {
+            //   sectionId: item.sectionid,
+            //   questionId: item.questionid,
+            //   question: item.question,
+            //   answer: (item.answer !== null && item.answer !== "") ? item.answer : null,
+            //   reasonsForHrp: this.hrpReasons,
+            //   otherHrpReason: (this.otherHrPReason !== null && this.otherHrPReason !== "") ? this.otherHrPReason : null
+            // }
+            // if(this.hrpReasons && this.hrpReasons.length > 0){
+            // this.associateAnmMoService.isHighRiskPregnancy = true;
+            // }
+            if(item.answer !== null && item.answer !== "" && (item.answer.toLowerCase() === 'yes' || item.answer === true)){
+              this.associateAnmMoService.isHighRiskPregnancy = true;
+              }
+          }
+          else if(item.question.toLowerCase().includes('is hrni') || item.question.toLowerCase().includes('high risk newborn') 
+          || item.question.toLowerCase().includes('high risk infant')){
+          // arr = {
+          //   sectionId: item.sectionid,
+          //   questionId: item.questionid,
+          //   question: item.question,
+          //   answer: (item.answer !== null && item.answer !== "") ? item.answer : null,
+          //   reasonsForHrni: this.hrniReasons,
+          //   otherHrni: (this.otherHrniReason !== null && this.otherHrniReason !== "") ? this.otherHrniReason : null,
+          //   congentialAnomalies: this.congentialAnomaliesReasons,
+          //   otherCongentialAnomalies: (this.otherCongentialAnomalie !== null && this.otherCongentialAnomalie !== "") ? this.otherCongentialAnomalie : null,
+          //   probableCauseOfDefect: (this.probableDefectCause !== null && this.probableDefectCause !== "") ? this.probableDefectCause : null
+          // }
+          // if(this.hrniReasons && this.hrniReasons.length > 0){
+          // this.associateAnmMoService.isHighRiskInfant = true;
+          // }
+          if(item.answer !== null && item.answer !== "" && (item.answer.toLowerCase() === 'yes' || item.answer === true)){
+            this.associateAnmMoService.isHighRiskInfant = true;
+            }
+        } 
+        // else {
           arr = {
             sectionId: item.sectionid,
             questionId: item.questionid,
@@ -740,7 +803,7 @@ export class EcdQuestionnaireComponent implements OnInit {
                     ? (Array.isArray(item.answer) 
                     ? item.answer.join(" || ") : item.answer) : null
           }
-        // }
+        //  }
           saveQuestionsData.push(arr);
         }
       });

@@ -111,9 +111,6 @@ export class AgentsInnerpageComponent implements OnInit {
     this.associateAnmMoService.openCompFlag$.subscribe((responseComp) => {
       if (responseComp !== null && (responseComp === "Call Closure" || responseComp === "Outbound Worklist" || responseComp === "Beneficiary Call History" || responseComp === "Beneficiary Registration" || responseComp === "ECD Questionnaire" || responseComp === "Call Closed")) {
         if(responseComp === "Call Closed") {
-          if (this.timerSubscription != undefined) {
-            this.timerSubscription.unsubscribe();
-          }
           this.unsubscribeWrapupTime();
           if (this.callTimerSubscription != undefined) {
             this.callTimerSubscription.unsubscribe();
@@ -205,6 +202,8 @@ export class AgentsInnerpageComponent implements OnInit {
   }
 
   ngOnDestroy() {
+    this.associateAnmMoService.isStartAutoPreviewDial = false;
+    this.associateAnmMoService.autoDialing = false;
     console.log("removing message listener");
     removeEventListener("message", this.toRemove, false);
     if (this.timerSubscription != undefined) {
@@ -578,7 +577,7 @@ export class AgentsInnerpageComponent implements OnInit {
 
     getCallTypes() {
       let reqObj={
-        providerServiceMapID: 1252
+        providerServiceMapID: sessionStorage.getItem('providerServiceMapID')
       }
       this.associateAnmMoService.getCallTypes(reqObj).subscribe(
         (response:any) => {
@@ -632,6 +631,7 @@ export class AgentsInnerpageComponent implements OnInit {
     this.ctiService.getAgentState(reqObj).subscribe((response:any) => {
         if (response && response.data && response.data.stateObj.stateName) {
             this.agentStatus = response.data.stateObj.stateName;
+            this.associateAnmMoService.setAgentState(this.agentStatus);
         }
 
     }, (err) => {
@@ -680,8 +680,5 @@ export class AgentsInnerpageComponent implements OnInit {
     }
 
   }
-
-
-
 
 }

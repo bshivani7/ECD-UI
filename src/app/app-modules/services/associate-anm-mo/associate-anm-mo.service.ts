@@ -36,9 +36,10 @@ export class AssociateAnmMoService {
   selectedBenDetails: any;
   isMother:boolean = false;
   callDetailId: any = null;
-  isStartAutoPreviewDial:any = false;
+  isStartAutoPreviewDial:boolean = false;
   isHighRiskPregnancy: boolean = false;
   isHighRiskInfant: boolean = false;
+  autoDialing:boolean = false;
 
   callWrapup: any="";
   callWrapupFlag = new BehaviorSubject(this.callWrapup);
@@ -80,6 +81,11 @@ export class AssociateAnmMoService {
   stopTimer: any="";
   stopTimerFlag = new BehaviorSubject(this.stopTimer);
   stopTimerFlag$ = this.stopTimerFlag.asObservable();
+
+  agentCurrentStatus: any="";
+  agentCurrentStatusData = new BehaviorSubject(this.agentCurrentStatus);
+  agentCurrentStatusData$ = this.agentCurrentStatusData.asObservable();
+  
 
   constructor(private http: HttpClient,  private resolver: ComponentFactoryResolver) { }
 
@@ -245,6 +251,16 @@ setStopTimer(value: any) {
 clearStopTimer() {
   this.stopTimer = null;
   this.stopTimerFlag.next(this.stopTimer);
+}
+
+setAgentState(value:any){
+  this.agentCurrentStatus = value;
+  this.agentCurrentStatusData.next(this.agentCurrentStatus);
+}
+resetAgentState()
+{
+  this.agentCurrentStatus = null;
+  this.agentCurrentStatus.next(this.agentCurrentStatus);
 }
 
 }

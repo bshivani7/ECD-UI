@@ -69,6 +69,7 @@ export class CallClosureComponent implements OnInit {
   timerSubscription: Subscription = new Subscription;
   callTimerSubscription: Subscription = new Subscription;
   wrapupTimerSubscription: Subscription = new Subscription;
+  isNextAttempt:boolean = true;
   callClosureForm: FormGroup = this.fb.group({
 
     isFurtherCallRequired: [],
@@ -122,9 +123,7 @@ private sms_service: SmsTemplateService,
     this.getSelectedLanguage();
   }
   ngOnInit(): void {
-    this.minimumDate = new Date().toISOString().slice(0, 16);
-    document.getElementsByName('nextAttemptDate')[0].setAttribute('min', this.minimumDate);
-    // this.minimumDate= new Date().toISOString().split('T')[0];
+     this.minimumDate = new Date();
     console.log(this.minimumDate);
     this.phoneNo = sessionStorage.getItem("benPhoneNo");
     let url = ""
@@ -443,6 +442,7 @@ private sms_service: SmsTemplateService,
     this.associateAnmMoService.resetCloseCallOnWrapup();
     this.associateAnmMoService.isHighRiskPregnancy = false;
    this.associateAnmMoService.isHighRiskInfant = false;
+   this.associateAnmMoService.autoDialing = false;
   }
   resetForm() {
     this.callClosureForm.reset();
@@ -670,7 +670,7 @@ private sms_service: SmsTemplateService,
 
   getCallTypes() {
     let reqObj={
-      providerServiceMapID: 1252
+      providerServiceMapID: sessionStorage.getItem('providerServiceMapID')
     }
     this.associateAnmMoService.getCallTypes(reqObj).subscribe(
       (response:any) => {
@@ -710,6 +710,17 @@ private sms_service: SmsTemplateService,
       this.showStickyAgent=false;
     }
 
+  }
+
+  checkIsNextAttempt(callAnswered:string, callVerified:string, callDisconnected:string ){
+   if(callAnswered === "Yes" && callVerified === "Yes" && callDisconnected === "No"){
+    this.callClosureForm.controls['nextAttemptDate'].disable();
+    this.callClosureForm.controls['nextAttemptDate'].reset();
+   }
+   else{
+    this.callClosureForm.controls['nextAttemptDate'].enable();
+    this.isNextAttempt = true;
+   }
   }
 }
 export interface gradeMapping {

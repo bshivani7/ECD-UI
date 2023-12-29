@@ -37,7 +37,6 @@ import * as moment from 'moment';
   styleUrls: ['./ben-registration.component.css']
 })export class BenRegistrationComponent implements OnInit {
 
-  datePipeString : any='2023-02-15T00:00:00.000Z';
   // viewDetails:any=this.data.selectedDetails;
   enableMotherRecord: boolean = false;
   // viewDetails: any[]=[];
@@ -91,8 +90,6 @@ import * as moment from 'moment';
     private loginService: LoginserviceService,
 
  ) { 
-   this.datePipeString = this.datePipe.transform(this.datePipeString,'dd/MM/yyyy');
-   console.log(this.datePipeString);
  }
 
   ngOnInit(): void {
@@ -305,7 +302,9 @@ else{
         dobDate = new Date(dobDate.getTime() + dobDate.getTimezoneOffset() * 60000)
 
         this.benRegistrationForm.controls.dob.setValue(dobDate);
-
+        if(this.benRegistrationForm.controls.dob.value){
+          this.benRegistrationForm.controls.dob.setErrors(null)
+        }
       }
 
       if(viewDetails.fatherName !== undefined && viewDetails.fatherName !==  null) {
