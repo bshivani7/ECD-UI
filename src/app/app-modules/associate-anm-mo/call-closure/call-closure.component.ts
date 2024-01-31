@@ -352,6 +352,7 @@ private sms_service: SmsTemplateService,
       isFollowupRequired: false,
       fitToBlock: false,
       endCall: true,
+      isOutbound: true,
       agentID: this.loginService.agentId,
       isFeedback:(formData.iVRFeedbackRequired)? formData.iVRFeedbackRequired : false
     }
